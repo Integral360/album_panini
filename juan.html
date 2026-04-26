@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Panini 2026 - Juan</title>
+  <style>
+    :root{
+      --bg:#050914;
+      --card:#101928e8;
+      --soft:#142235;
+      --gold:#f7c948;
+      --gold2:#f59e0b;
+      --text:#f8fafc;
+      --muted:#9fb0c3;
+      --border:rgba(255,255,255,.12);
+      --missing:#263244;
+      --owned:#16a34a;
+      --repeat:#f7c948;
+      --danger:#ef4444;
+    }
+
+    *{box-sizing:border-box;}
+
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(247,201,72,.18), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(34,197,94,.10), transparent 30%),
+        linear-gradient(160deg,#030712,#071018 55%,#0b1722);
+      color:var(--text);
+      padding:14px;
+    }
+
+    .app{width:100%;max-width:640px;margin:auto;padding-bottom:90px;}
+    .hero{text-align:center;padding:14px 8px 8px;}
+    .badge{display:inline-flex;gap:6px;align-items:center;border:1px solid rgba(247,201,72,.38);color:var(--gold);border-radius:999px;padding:6px 12px;font-size:12px;background:rgba(247,201,72,.06);}
+    h1{margin:8px 0 4px;font-size:27px;letter-spacing:-.6px;}
+    .subtitle{color:var(--muted);font-size:13px;margin:0;}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.32);backdrop-filter:blur(14px);margin:12px 0;}
+    .dash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+    .stat{background:#08131f;border:1px solid var(--border);border-radius:18px;padding:10px 6px;text-align:center;cursor:default;}
+    .stat.clickable{cursor:pointer;transition:.15s;}
+    .stat.clickable:active{transform:scale(.97);}
+    .stat strong{display:block;color:var(--gold);font-size:18px;}
+    .stat span{font-size:11px;color:var(--muted);}
+    .progress{height:13px;background:#08131f;border:1px solid var(--border);border-radius:999px;margin-top:12px;overflow:hidden;}
+    .bar{height:100%;width:0%;background:linear-gradient(135deg,var(--gold),var(--gold2));transition:.25s;}
+    .quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+    .search-wrap{position:sticky;top:0;z-index:20;padding:8px 0;background:linear-gradient(180deg,rgba(5,9,20,.96),rgba(5,9,20,.75),transparent);backdrop-filter:blur(10px);}
+    input,button{font-family:inherit;}
+    .search{width:100%;padding:15px 16px;border-radius:18px;border:1px solid var(--border);background:#08131f;color:var(--text);outline:none;font-size:16px;}
+    .search:focus{border-color:rgba(247,201,72,.7);box-shadow:0 0 0 3px rgba(247,201,72,.12);}
+    .hint{font-size:12px;color:var(--muted);margin:8px 2px 0;}
+    .group{border:1px solid var(--border);background:rgba(16,25,40,.78);border-radius:22px;margin:12px 0;overflow:hidden;}
+    .group-head{display:flex;justify-content:space-between;align-items:center;padding:16px;cursor:pointer;user-select:none;background:linear-gradient(135deg,rgba(247,201,72,.10),rgba(255,255,255,.02));}
+    .group-title{font-size:18px;font-weight:850;}
+    .group-meta{font-size:12px;color:var(--muted);}
+    .group-body{display:none;padding:10px;}
+    .group.open .group-body{display:block;}
+    .team{background:#08131f;border:1px solid var(--border);border-radius:18px;margin:8px 0;overflow:hidden;}
+    .team-head{padding:13px 14px;display:flex;justify-content:space-between;gap:8px;align-items:center;cursor:pointer;}
+    .team-name{font-weight:760;}
+    .team-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+    .team-progress{font-size:12px;color:var(--text);background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:999px;padding:4px 8px;white-space:nowrap;}
+    .team-repeat{font-size:12px;color:#fff8d6;background:rgba(247,201,72,.13);border:1px solid rgba(247,201,72,.35);border-radius:999px;padding:4px 8px;white-space:nowrap;}
+    .team-code{color:var(--gold);border:1px solid rgba(247,201,72,.25);padding:4px 8px;border-radius:999px;font-size:12px;white-space:nowrap;}
+    .stickers{display:none;padding:10px;border-top:1px solid var(--border);grid-template-columns:repeat(5,1fr);gap:8px;}
+    .team.open .stickers{display:grid;}
+    .sticker{border:1px solid var(--border);border-radius:14px;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;user-select:none;background:var(--missing);position:relative;transition:.12s;}
+    .sticker:active{transform:scale(.97);}
+    .sticker.owned{background:rgba(22,163,74,.25);border-color:rgba(34,197,94,.55);}
+    .sticker.repeat{background:rgba(247,201,72,.22);border-color:rgba(247,201,72,.7);}
+    .sticker .code{font-weight:900;font-size:13px;}
+    .sticker .type{font-size:10px;color:var(--muted);margin-top:3px;}
+    .sticker.repeat .type,.sticker.repeat .code{color:#fff8d6;}
+    .qty{position:absolute;right:5px;top:5px;min-width:18px;height:18px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);font-size:10px;font-weight:900;}
+    .actions{position:fixed;left:0;right:0;bottom:0;background:rgba(5,9,20,.92);border-top:1px solid var(--border);backdrop-filter:blur(14px);padding:10px 14px;z-index:50;}
+    .actions-inner{max-width:640px;margin:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+    .btn{border:0;padding:14px 12px;border-radius:16px;font-weight:850;cursor:pointer;}
+    .btn-main{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#111827;}
+    .btn-soft{background:#142235;color:var(--text);border:1px solid var(--border);}
+    .status{grid-column:1/3;font-size:12px;color:var(--muted);text-align:center;min-height:18px;}
+    .pin-modal{position:fixed;inset:0;background:rgba(0,0,0,.62);display:none;align-items:center;justify-content:center;padding:18px;z-index:80;}
+    .pin-box{width:100%;max-width:360px;background:#101928;border:1px solid var(--border);border-radius:24px;padding:18px;box-shadow:0 25px 80px rgba(0,0,0,.5);}
+    .pin-box h2{margin:0 0 6px;}
+    .pin-box p{margin:0 0 12px;color:var(--muted);font-size:13px;}
+    .pin-box input{width:100%;padding:14px;border-radius:16px;border:1px solid var(--border);background:#08131f;color:var(--text);font-size:17px;}
+    .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+    .hidden{display:none!important;}
+    .view{display:block;}
+    .view.hidden-view{display:none;}
+    .section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:14px 0 10px;}
+    .section-title h2{margin:0;font-size:22px;}
+    .repeat-list{display:grid;gap:10px;}
+    .repeat-item{background:#08131f;border:1px solid rgba(247,201,72,.24);border-radius:18px;padding:12px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+    .repeat-main strong{color:var(--gold);font-size:16px;}
+    .repeat-main div{color:var(--muted);font-size:12px;margin-top:2px;}
+    .repeat-actions{display:flex;align-items:center;gap:8px;}
+    .mini-btn{width:36px;height:36px;border-radius:12px;border:1px solid var(--border);background:#142235;color:var(--text);font-weight:900;cursor:pointer;}
+    .repeat-qty{min-width:28px;text-align:center;font-weight:900;color:#fff8d6;}
+    .empty{text-align:center;color:var(--muted);padding:20px 8px;font-size:14px;}
+
+    @media(max-width:500px){
+      .team-head{align-items:flex-start;}
+      .team-right{flex-direction:column;align-items:flex-end;}
+    }
+
+    @media(max-width:380px){
+      .stickers{grid-template-columns:repeat(4,1fr);}
+      .dash-grid{grid-template-columns:repeat(2,1fr);}
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <div class="badge">⚽ Panini 2026 · INTEGRAL360</div>
+      <h1>Juan</h1>
+      <p class="subtitle">Toca una ficha para sumar. Guarda el lote con PIN.</p>
+    </section>
+
+    <section class="card">
+      <div class="dash-grid">
+        <div class="stat"><strong id="sPegadas">0</strong><span>pegadas</span></div>
+        <div class="stat"><strong id="sFaltantes">980</strong><span>faltantes</span></div>
+        <div class="stat clickable" onclick="mostrarVistaRepetidas()"><strong id="sRepetidas">0</strong><span>repetidas</span></div>
+        <div class="stat"><strong id="sCambios">0</strong><span>cambios</span></div>
+      </div>
+
+      <div class="progress"><div id="barra" class="bar"></div></div>
+
+      <div class="quick-actions">
+        <button class="btn btn-soft" onclick="mostrarVistaAlbum()">Ver álbum</button>
+        <button class="btn btn-soft" onclick="mostrarVistaRepetidas()">Ver repetidas</button>
+      </div>
+    </section>
+
+    <section id="vistaAlbum" class="view">
+      <div class="search-wrap">
+        <input id="buscador" class="search" placeholder="Buscar: BEL 2, México, FW05..." oninput="filtrar()">
+        <div class="hint">Tip: toca para sumar. Para restar, usa el botón “modo restar”.</div>
+      </div>
+      <section id="contenedor"></section>
+    </section>
+
+    <section id="vistaRepetidas" class="view hidden-view">
+      <div class="section-title">
+        <h2>Repetidas</h2>
+        <button class="btn btn-soft" onclick="mostrarVistaAlbum()">Volver</button>
+      </div>
+
+      <div class="card">
+        <div class="hint">Aquí puedes descontar repetidas cuando hagas cambios o intercambios. Recuerda guardar el lote al final.</div>
+      </div>
+
+      <div id="listaRepetidas" class="repeat-list"></div>
+    </section>
+  </main>
+
+  <div class="actions">
+    <div class="actions-inner">
+      <button id="modoBtn" class="btn btn-soft" onclick="toggleModo()">Modo: sumar</button>
+      <button class="btn btn-main" onclick="abrirPin()">Guardar cambios</button>
+      <div id="status" class="status">Sin cambios pendientes.</div>
+    </div>
+  </div>
+
+  <div id="pinModal" class="pin-modal">
+    <div class="pin-box">
+      <h2>Confirmar guardado</h2>
+      <p>Ingresa tu PIN para guardar los cambios en Google Sheets.</p>
+      <input id="pin" type="password" inputmode="numeric" placeholder="PIN">
+      <div class="modal-actions">
+        <button class="btn btn-soft" onclick="cerrarPin()">Cancelar</button>
+        <button class="btn btn-main" onclick="guardarCambios()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbzEF_FVY3_19EnEeqrEynAIrk3jZe52RGteKPwg-23PCoisvfwXE5-wbtDJP1mjBfk/exec";
+    const USUARIO = "Juan";
+    const TOTAL = 980;
+
+    const grupos = {
+      A:[["MEX","México"],["RSA","Sudáfrica"],["KOR","Corea del Sur"],["CZE","R. Checa"]],
+      B:[["CAN","Canadá"],["BIH","Bosnia H."],["QAT","Qatar"],["SUI","Suiza"]],
+      C:[["BRA","Brasil"],["MAR","Marruecos"],["HAI","Haití"],["SCO","Escocia"]],
+      D:[["USA","EE.UU"],["PAR","Paraguay"],["AUS","Australia"],["TUR","Turquía"]],
+      E:[["GER","Alemania"],["CUW","Curazao"],["CIV","C. de Marfil"],["ECU","Ecuador"]],
+      F:[["NED","Países Bajos"],["JPN","Japon"],["SWE","Suecia"],["TUN","Túnez"]],
+      G:[["BEL","Bélgica"],["EGY","Egipto"],["IRN","Irán"],["NZL","N. Zelanda"]],
+      H:[["ESP","España"],["CPV","Cabo Verde"],["KSA","Arabia Saudita"],["URU","Uruguay"]],
+      I:[["FRA","Francia"],["SEN","Senegal"],["IRQ","Irak"],["NOR","Noruega"]],
+      J:[["ARG","Argentina"],["ALG","Argelia"],["AUT","Austria"],["JOR","Jordania"]],
+      K:[["POR","Portugal"],["COD","RD Congo"],["UZB","Uzbekistán"],["COL","Colombia"]],
+      L:[["ENG","Inglaterra"],["CRO","Croacia"],["GHA","Ghana"],["PAN","Panamá"]]
+    };
+
+    let inventario = {};
+    let cambios = {};
+    let modo = "sumar";
+    let vistaActual = "album";
+
+    function tipoFicha(n){
+      if(n === 1) return "Escudo";
+      if(n === 13) return "Foto";
+      return "Jugador";
+    }
+
+    function codigo(code, n){ return `${code} ${n}`; }
+    function codigoEspecial(i){ return `FW${String(i).padStart(2,"0")}`; }
+
+    function cantidad(cod){
+      if(cambios[cod] !== undefined) return cambios[cod];
+      return inventario[cod] || 0;
+    }
+
+    function estadoClase(q){
+      if(q >= 2) return "repeat";
+      if(q === 1) return "owned";
+      return "";
+    }
+
+    function storageKey(key){
+      return `panini_${USUARIO}_${key}`;
+    }
+
+    function guardarEstadoUI(){
+      const gruposAbiertos = [];
+      const equiposAbiertos = [];
+
+      document.querySelectorAll(".group.open").forEach(group => {
+        if(group.dataset.group) gruposAbiertos.push(group.dataset.group);
+      });
+
+      document.querySelectorAll(".team.open").forEach(team => {
+        if(team.dataset.code) equiposAbiertos.push(team.dataset.code);
+      });
+
+      return { gruposAbiertos, equiposAbiertos };
+    }
+
+    function restaurarEstadoUI(estado){
+      if(!estado) return;
+
+      document.querySelectorAll(".group").forEach(group => {
+        if(estado.gruposAbiertos.includes(group.dataset.group)) group.classList.add("open");
+      });
+
+      document.querySelectorAll(".team").forEach(team => {
+        if(estado.equiposAbiertos.includes(team.dataset.code)) team.classList.add("open");
+      });
+    }
+
+    function guardarEstadoEnLocalStorage(){
+      const estado = guardarEstadoUI();
+      localStorage.setItem(storageKey("grupos_abiertos"), JSON.stringify(estado.gruposAbiertos));
+      localStorage.setItem(storageKey("equipos_abiertos"), JSON.stringify(estado.equiposAbiertos));
+      localStorage.setItem(storageKey("vista_actual"), vistaActual);
+    }
+
+    function obtenerEstadoDesdeLocalStorage(){
+      return {
+        gruposAbiertos: JSON.parse(localStorage.getItem(storageKey("grupos_abiertos")) || "[]"),
+        equiposAbiertos: JSON.parse(localStorage.getItem(storageKey("equipos_abiertos")) || "[]")
+      };
+    }
+
+    function render(){
+      const estadoAntes = guardarEstadoUI();
+      const estadoLocal = obtenerEstadoDesdeLocalStorage();
+      const estadoAUsar = {
+        gruposAbiertos: [...new Set([...estadoLocal.gruposAbiertos, ...estadoAntes.gruposAbiertos])],
+        equiposAbiertos: [...new Set([...estadoLocal.equiposAbiertos, ...estadoAntes.equiposAbiertos])]
+      };
+
+      const cont = document.getElementById("contenedor");
+      let html = "";
+
+      for(const [grupo, teams] of Object.entries(grupos)){
+        html += `
+          <div class="group" data-group="${grupo}">
+            <div class="group-head" onclick="abrirGrupo(this)">
+              <div>
+                <div class="group-title">Grupo ${grupo}</div>
+                <div class="group-meta">${teams.map(t => t[1]).join(" · ")}</div>
+              </div>
+              <div>⌄</div>
+            </div>
+            <div class="group-body">
+        `;
+
+        teams.forEach(([code, name]) => {
+          const resumen = resumenEquipo(code);
+
+          html += `
+            <div class="team" data-code="${code}" data-team="${name.toLowerCase()} ${code.toLowerCase()}">
+              <div class="team-head" onclick="abrirEquipo(this)">
+                <div class="team-name">${name}</div>
+                <div class="team-right">
+                  <div class="team-progress">${resumen.pegadas}/20</div>
+                  <div class="team-repeat">🔁 ${resumen.repetidas}</div>
+                  <div class="team-code">${code}</div>
+                </div>
+              </div>
+              <div class="stickers">
+          `;
+
+          for(let n = 1; n <= 20; n++){
+            const cod = codigo(code, n);
+            const q = cantidad(cod);
+
+            html += `
+              <div class="sticker ${estadoClase(q)}" data-code="${cod.toLowerCase()}" data-name="${name.toLowerCase()}" onclick="tocarFicha('${cod}')">
+                <div class="qty">${q}</div>
+                <div class="code">${code} ${n}</div>
+                <div class="type">${tipoFicha(n)}</div>
+              </div>
+            `;
+          }
+
+          html += `</div></div>`;
+        });
+
+        html += `</div></div>`;
+      }
+
+      const resumenFw = resumenEspeciales();
+
+      html += `
+        <div class="group" data-group="FW">
+          <div class="group-head" onclick="abrirGrupo(this)">
+            <div>
+              <div class="group-title">Especiales FW</div>
+              <div class="group-meta">FW00 · FW01 · ... · FW19</div>
+            </div>
+            <div>⌄</div>
+          </div>
+          <div class="group-body">
+            <div class="team open" data-code="FW" data-team="especiales fw">
+              <div class="team-head">
+                <div class="team-name">FIFA World Cup Stars</div>
+                <div class="team-right">
+                  <div class="team-progress">${resumenFw.pegadas}/20</div>
+                  <div class="team-repeat">🔁 ${resumenFw.repetidas}</div>
+                  <div class="team-code">FW</div>
+                </div>
+              </div>
+              <div class="stickers" style="display:grid">
+      `;
+
+      for(let i = 0; i < 20; i++){
+        const cod = codigoEspecial(i);
+        const q = cantidad(cod);
+
+        html += `
+          <div class="sticker ${estadoClase(q)}" data-code="${cod.toLowerCase()}" data-name="especiales fw" onclick="tocarFicha('${cod}')">
+            <div class="qty">${q}</div>
+            <div class="code">${cod}</div>
+            <div class="type">Especial</div>
+          </div>
+        `;
+      }
+
+      html += `</div></div></div></div>`;
+
+      cont.innerHTML = html;
+
+      restaurarEstadoUI(estadoAUsar);
+      actualizarDashboard();
+      renderRepetidas();
+      filtrar();
+      guardarEstadoEnLocalStorage();
+    }
+
+    function resumenEquipo(code){
+      let pegadas = 0;
+      let repetidas = 0;
+
+      for(let n = 1; n <= 20; n++){
+        const q = cantidad(codigo(code, n));
+        if(q >= 1) pegadas++;
+        if(q >= 2) repetidas += q - 1;
+      }
+
+      return { pegadas, repetidas };
+    }
+
+    function resumenEspeciales(){
+      let pegadas = 0;
+      let repetidas = 0;
+
+      for(let i = 0; i < 20; i++){
+        const q = cantidad(codigoEspecial(i));
+        if(q >= 1) pegadas++;
+        if(q >= 2) repetidas += q - 1;
+      }
+
+      return { pegadas, repetidas };
+    }
+
+    function abrirGrupo(el){
+      const grupo = el.parentElement;
+
+      document.querySelectorAll(".group").forEach(g => {
+        if(g !== grupo) g.classList.remove("open");
+      });
+
+      grupo.classList.toggle("open");
+      guardarEstadoEnLocalStorage();
+    }
+
+    function abrirEquipo(el){
+      const team = el.parentElement;
+      team.classList.toggle("open");
+      guardarEstadoEnLocalStorage();
+    }
+
+    function tocarFicha(cod){
+      const actual = cantidad(cod);
+      const nuevo = modo === "sumar" ? actual + 1 : Math.max(0, actual - 1);
+      cambios[cod] = nuevo;
+      setStatus(`${cod}: ${actual} → ${nuevo}`);
+      render();
+    }
+
+    function ajustarFicha(cod, delta){
+      const actual = cantidad(cod);
+      const nuevo = Math.max(0, actual + delta);
+      cambios[cod] = nuevo;
+      setStatus(`${cod}: ${actual} → ${nuevo}`);
+      render();
+    }
+
+    function toggleModo(){
+      modo = modo === "sumar" ? "restar" : "sumar";
+      document.getElementById("modoBtn").textContent = `Modo: ${modo}`;
+    }
+
+    function actualizarDashboard(){
+      const todos = codigosBaseConteo();
+      let pegadas = 0;
+      let repetidas = 0;
+
+      todos.forEach(c => {
+        const q = cantidad(c);
+
+        if(q >= 1){
+          pegadas++;
+        }
+
+        if(q >= 2){
+          repetidas += q - 1;
+        }
+      });
+
+      const totalReal = todos.length || TOTAL;
+      const faltantes = Math.max(0, totalReal - pegadas);
+      const porcentaje = totalReal > 0 ? ((pegadas / totalReal) * 100).toFixed(2) : "0.00";
+
+      document.getElementById("sPegadas").textContent = pegadas;
+      document.getElementById("sFaltantes").textContent = faltantes;
+      document.getElementById("sRepetidas").textContent = repetidas;
+      document.getElementById("sCambios").textContent = Object.keys(cambios).length;
+      document.getElementById("barra").style.width = porcentaje + "%";
+    }
+
+    function infoCodigo(cod){
+      if(cod.startsWith("FW")) return { grupo:"FW", equipo:"Especiales", tipo:"Especial" };
+
+      const [code, numberText] = cod.split(" ");
+      const number = Number(numberText);
+
+      for(const [grupo, teams] of Object.entries(grupos)){
+        const found = teams.find(t => t[0] === code);
+        if(found) return { grupo, equipo:found[1], tipo:tipoFicha(number) };
+      }
+
+      return { grupo:"", equipo:"", tipo:"" };
+    }
+
+    function renderRepetidas(){
+      const lista = document.getElementById("listaRepetidas");
+      const repetidas = codigosBaseConteo()
+        .map(cod => ({ codigo:cod, cantidad:cantidad(cod), info:infoCodigo(cod) }))
+        .filter(item => item.cantidad >= 2);
+
+      if(repetidas.length === 0){
+        lista.innerHTML = `<div class="card empty">No tienes repetidas registradas.</div>`;
+        return;
+      }
+
+      lista.innerHTML = repetidas.map(item => `
+        <div class="repeat-item">
+          <div class="repeat-main">
+            <strong>${item.codigo}</strong>
+            <div>${item.info.equipo} · Grupo ${item.info.grupo} · ${item.info.tipo}</div>
+          </div>
+          <div class="repeat-actions">
+            <button class="mini-btn" onclick="ajustarFicha('${item.codigo}', -1)">−</button>
+            <div class="repeat-qty">${item.cantidad}</div>
+            <button class="mini-btn" onclick="ajustarFicha('${item.codigo}', 1)">+</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function mostrarVistaAlbum(){
+      vistaActual = "album";
+      document.getElementById("vistaAlbum").classList.remove("hidden-view");
+      document.getElementById("vistaRepetidas").classList.add("hidden-view");
+      guardarEstadoEnLocalStorage();
+    }
+
+    function mostrarVistaRepetidas(){
+      vistaActual = "repetidas";
+      document.getElementById("vistaAlbum").classList.add("hidden-view");
+      document.getElementById("vistaRepetidas").classList.remove("hidden-view");
+      renderRepetidas();
+      guardarEstadoEnLocalStorage();
+    }
+
+    function restaurarVista(){
+      const vistaGuardada = localStorage.getItem(storageKey("vista_actual"));
+      if(vistaGuardada === "repetidas") mostrarVistaRepetidas();
+      else mostrarVistaAlbum();
+    }
+
+    function setStatus(msg){
+      document.getElementById("status").textContent = msg;
+    }
+
+    function abrirPin(){
+      if(Object.keys(cambios).length === 0){
+        setStatus("No hay cambios para guardar.");
+        return;
+      }
+      document.getElementById("pinModal").style.display = "flex";
+      document.getElementById("pin").focus();
+    }
+
+    function cerrarPin(){
+      document.getElementById("pinModal").style.display = "none";
+    }
+
+    async function guardarCambios(){
+      const pin = document.getElementById("pin").value.trim();
+
+      if(!pin){
+        setStatus("Ingresa tu PIN.");
+        return;
+      }
+
+      if(API_URL.includes("PEGA_AQUI")){
+        setStatus("Primero pega la URL de Apps Script en API_URL.");
+        cerrarPin();
+        return;
+      }
+
+      setStatus("Guardando lote...");
+
+      try{
+        const payload = {
+          action:"guardarLote",
+          usuario:USUARIO,
+          pin,
+          cambios:Object.entries(cambios).map(([codigo, cantidad]) => ({ codigo, cantidad }))
+        };
+
+        const res = await fetch(API_URL, {
+          method:"POST",
+          body:JSON.stringify(payload)
+        });
+
+        const json = await res.json();
+
+        if(json.ok){
+          cambios = {};
+          cerrarPin();
+          document.getElementById("pin").value = "";
+          setStatus("Cambios guardados. Recargando desde Google Sheets...");
+          await cargarInventario(true);
+        }else{
+          setStatus(json.error || "Error guardando.");
+        }
+      }catch(e){
+        setStatus("No se pudo conectar con Apps Script.");
+      }
+    }
+
+    async function cargarInventario(silent = false){
+      if(!silent){
+        render();
+        restaurarVista();
+      }
+
+      if(API_URL.includes("PEGA_AQUI")){
+        setStatus("Modo local: pega la URL de Apps Script para conectar Sheets.");
+        return;
+      }
+
+      try{
+        const res = await fetch(`${API_URL}?action=inventario&usuario=${encodeURIComponent(USUARIO)}&t=${Date.now()}`);
+        const json = await res.json();
+
+        if(json.ok){
+          inventario = json.inventario || {};
+          cambios = {};
+          setStatus("Inventario cargado desde Google Sheets.");
+          render();
+          restaurarVista();
+        }else{
+          setStatus(json.error || "No se pudo cargar inventario.");
+        }
+      }catch(e){
+        setStatus("Error cargando inventario.");
+      }
+    }
+
+    function filtrar(){
+      const buscador = document.getElementById("buscador");
+      if(!buscador) return;
+
+      const q = buscador.value.trim().toLowerCase();
+      const groups = document.querySelectorAll(".group");
+
+      if(!q){
+        groups.forEach(g => g.classList.remove("hidden"));
+        document.querySelectorAll(".team").forEach(t => t.classList.remove("hidden"));
+        document.querySelectorAll(".sticker").forEach(s => s.classList.remove("hidden"));
+        return;
+      }
+
+      groups.forEach(g => {
+        let groupHas = false;
+
+        g.querySelectorAll(".team").forEach(t => {
+          let teamHas = false;
+          const teamText = t.dataset.team || "";
+
+          t.querySelectorAll(".sticker").forEach(s => {
+            const match =
+              (s.dataset.code || "").includes(q) ||
+              (s.dataset.name || "").includes(q) ||
+              teamText.includes(q);
+
+            s.classList.toggle("hidden", !match);
+            if(match) teamHas = true;
+          });
+
+          t.classList.toggle("hidden", !teamHas);
+          if(teamHas) groupHas = true;
+        });
+
+        g.classList.toggle("hidden", !groupHas);
+        if(groupHas) g.classList.add("open");
+      });
+    }
+
+    cargarInventario();
+  </script>
+</body>
+</html>
