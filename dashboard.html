@@ -104,7 +104,7 @@
       }
 
       try{
-        const res = await fetch(`${API_URL}?action=grupo`);
+        const res = await fetch(`${API_URL}?action=grupo&t=${Date.now()}`);
         const json = await res.json();
 
         if(!json.ok){
