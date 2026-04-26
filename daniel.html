@@ -117,7 +117,7 @@
 <body>
   <main class="app">
     <section class="hero">
-      <div class="badge">⚽ Panini 2026 · iNTEGRAL360</div>
+      <div class="badge">⚽ Panini 2026 · INTEGRAL360</div>
       <h1>Daniel</h1>
       <p class="subtitle">Toca una ficha para sumar. Guarda el lote con PIN.</p>
     </section>
@@ -439,6 +439,31 @@
     function toggleModo(){
       modo = modo === "sumar" ? "restar" : "sumar";
       document.getElementById("modoBtn").textContent = `Modo: ${modo}`;
+    }
+
+
+    function codigosBaseConteo(){
+      const codigosDesdeSheets = Object.keys(inventario);
+
+      if(codigosDesdeSheets.length > 0){
+        return codigosDesdeSheets;
+      }
+
+      const arr = [];
+
+      Object.values(grupos).forEach(teams => {
+        teams.forEach(([code]) => {
+          for(let n = 1; n <= 20; n++){
+            arr.push(`${code} ${n}`);
+          }
+        });
+      });
+
+      for(let i = 0; i < 20; i++){
+        arr.push(`FW${String(i).padStart(2,"0")}`);
+      }
+
+      return arr;
     }
 
     function actualizarDashboard(){
