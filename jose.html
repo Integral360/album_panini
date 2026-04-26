@@ -441,6 +441,31 @@
       document.getElementById("modoBtn").textContent = `Modo: ${modo}`;
     }
 
+
+    function codigosBaseConteo(){
+      const codigosDesdeSheets = Object.keys(inventario);
+
+      if(codigosDesdeSheets.length > 0){
+        return codigosDesdeSheets;
+      }
+
+      const arr = [];
+
+      Object.values(grupos).forEach(teams => {
+        teams.forEach(([code]) => {
+          for(let n = 1; n <= 20; n++){
+            arr.push(`${code} ${n}`);
+          }
+        });
+      });
+
+      for(let i = 0; i < 20; i++){
+        arr.push(`FW${String(i).padStart(2,"0")}`);
+      }
+
+      return arr;
+    }
+
     function actualizarDashboard(){
       const todos = codigosBaseConteo();
       let pegadas = 0;
