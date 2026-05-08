@@ -35,7 +35,7 @@
     }
 
     .app{width:100%;max-width:640px;margin:auto;padding-bottom:90px;}
-    .hero{text-align:center;padding:14px 8px 8px;}
+    .hero{text-align:center;padding:14px 8px 8px;}.logo-wrap{display:flex;justify-content:center;margin-bottom:10px;}.logo-wrap img{width:160px;max-width:80%;opacity:.96;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45));}
     .badge{display:inline-flex;gap:6px;align-items:center;border:1px solid rgba(247,201,72,.38);color:var(--gold);border-radius:999px;padding:6px 12px;font-size:12px;background:rgba(247,201,72,.06);}
     h1{margin:8px 0 4px;font-size:27px;letter-spacing:-.6px;}
     .subtitle{color:var(--muted);font-size:13px;margin:0;}
@@ -113,10 +113,12 @@
       .dash-grid{grid-template-columns:repeat(2,1fr);}
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
   <main class="app">
     <section class="hero">
+      <div class="logo-wrap"><img src="logo.png" alt="Integral360"></div>
       <div class="badge">⚽ Panini 2026 · INTEGRAL360</div>
       <h1>Elsa</h1>
       <p class="subtitle">Toca una ficha para sumar. Guarda el lote con PIN.</p>
@@ -135,6 +137,11 @@
       <div class="quick-actions">
         <button class="btn btn-soft" onclick="mostrarVistaAlbum()">Ver álbum</button>
         <button class="btn btn-soft" onclick="mostrarVistaRepetidas()">Ver repetidas</button>
+      </div>
+
+      <div class="quick-actions">
+        <button class="btn btn-soft" onclick="exportarFaltantes()">Exportar faltantes</button>
+        <button class="btn btn-soft" onclick="exportarRepetidas()">Exportar repetidas</button>
       </div>
     </section>
 
@@ -532,6 +539,80 @@
           </div>
         </div>
       `).join("");
+    }
+
+
+    function listaFaltantes(){
+      return codigosBaseConteo()
+        .map(cod => ({ codigo:cod, cantidad:cantidad(cod), info:infoCodigo(cod) }))
+        .filter(item => item.cantidad === 0);
+    }
+
+    function listaRepetidasExport(){
+      return codigosBaseConteo()
+        .map(cod => ({
+          codigo:cod,
+          cantidad:cantidad(cod),
+          disponibles:Math.max(0, cantidad(cod) - 1),
+          info:infoCodigo(cod)
+        }))
+        .filter(item => item.cantidad >= 2);
+    }
+
+
+    function generarFilasFaltantes(){
+      return listaFaltantes().map(item => ({
+        Codigo: item.codigo,
+        Seleccion: item.info.equipo,
+        Grupo: item.info.grupo,
+        Tipo: item.info.tipo,
+        Estado: "Faltante"
+      }));
+    }
+
+    function generarFilasRepetidas(){
+      return listaRepetidasExport().map(item => ({
+        Codigo: item.codigo,
+        Seleccion: item.info.equipo,
+        Grupo: item.info.grupo,
+        Tipo: item.info.tipo,
+        Cantidad_Total: item.cantidad,
+        Disponibles_Intercambio: item.disponibles
+      }));
+    }
+
+    function descargarExcel(nombreArchivo, nombreHoja, filas){
+      if(!filas || filas.length === 0){
+        setStatus("No hay datos para exportar.");
+        return;
+      }
+
+      if(typeof XLSX === "undefined"){
+        setStatus("No se pudo cargar la librería de Excel. Revisa tu conexión.");
+        return;
+      }
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(filas);
+
+      ws["!cols"] = Object.keys(filas[0]).map(key => ({
+        wch: Math.max(key.length + 2, 18)
+      }));
+
+      XLSX.utils.book_append_sheet(wb, ws, nombreHoja);
+      XLSX.writeFile(wb, nombreArchivo);
+    }
+
+    function exportarFaltantes(){
+      const filas = generarFilasFaltantes();
+      descargarExcel(`${USUARIO}_faltantes_panini_2026.xlsx`, "Faltantes", filas);
+      setStatus("Archivo Excel de faltantes generado.");
+    }
+
+    function exportarRepetidas(){
+      const filas = generarFilasRepetidas();
+      descargarExcel(`${USUARIO}_repetidas_panini_2026.xlsx`, "Repetidas", filas);
+      setStatus("Archivo Excel de repetidas generado.");
     }
 
     function mostrarVistaAlbum(){
